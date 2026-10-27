@@ -1,6 +1,7 @@
 import express from 'express';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { attchCorrelationMiddleware } from './middlewares/correlationId.middleware.js';
+import apiRouter from './routes/index.js';
 
 const app = express();
 
@@ -14,6 +15,8 @@ app.get('/health', (_req, res) => {
         status: 'OK'
     });
 });
+
+app.use('/api', apiRouter);
 
 app.use(errorHandler);
 
