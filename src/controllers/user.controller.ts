@@ -19,10 +19,14 @@ export async function createUserController(
 
         sendSuccess(
             res,
-            //result,  for testing temporary password
-            { user: result.user },
+            {
+                user: result.user,
+                invitation: result.invitation,
+            },
             201,
-            'User created successfully.',
+            result.invitation.queued
+                ? 'User created successfully.'
+                : 'User created, but invitation could not be queued. Please retry.',
         );
     } catch (error) {
         next(error);

@@ -6,6 +6,9 @@ import {
     ConflictError,
     NotfoundError,
 } from '../utils/errors/app.error.js';
+import { FRONTEND_LOGIN_URL } from '../configs/server.config.js';
+import { enqueueUserInvitationNotification } from '../queues/userInvitationNotification.queue.js';
+import { logger } from '../configs/logger.config.js';
 
 class UserService {
     private readonly userRepository: UserRepository;
@@ -16,6 +19,12 @@ class UserService {
 
     // Create a user with a temporary password for initial sign-in testing.
     async createUserService(data: CreateUserDto) {
+
+        if (!FRONTEND_LOGIN_URL) {
+            throw new Error(
+                'FRONTEND_ORIGIN must be configured to send invitation emails.',
+            );
+        }        
         const existingUser = await this.userRepository.findByEmail(data.email);
 
         if (existingUser) {
@@ -39,6 +48,30 @@ class UserService {
             roleId: role.id,
         });
 
+        let invitationQueued = false;
+        let invitationFailedReason: string | undefined;
+
+        try {
+            await enqueueUserInvitationNotification({
+                userId: user.id,
+                name: user.name,
+                email: user.email,
+                role: data.role,
+                temporaryPassword,
+                loginUrl: FRONTEND_LOGIN_URL,
+            });
+
+            invitationQueued = true;
+        } catch (error) {
+            logger.error('User created but invitation enqueue failed', {
+                publicId: user.publicId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+
+            invitationFailedReason =
+                'User created, but the invitation email could not be queued. Please retry.';
+        }
+
         return {
             user: {
                 publicId: user.publicId,
@@ -50,6 +83,12 @@ class UserService {
                 passwordResetRequired: user.passwordResetRequired,
             },
             temporaryPassword,
+            invitation: {
+                queued: invitationQueued,
+                ...(invitationFailedReason
+                    ? { failedReason: invitationFailedReason }
+                    : {}),
+            },
         };
     }
 }

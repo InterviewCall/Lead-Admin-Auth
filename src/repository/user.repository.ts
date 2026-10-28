@@ -108,6 +108,7 @@ class UserRepository {
                 passwordResetRequired: true,
             },
             select: {
+                id : true,
                 publicId: true,
                 name: true,
                 email: true,
