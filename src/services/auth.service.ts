@@ -6,6 +6,7 @@ import {
     createPasswordResetToken,
 } from '../utils/auth/auth.js';
 import { UnauthorizedError } from '../utils/errors/app.error.js';
+import { ROLE } from '../constants/role.constant.js';
 
 class AuthService {
     private userRepository: UserRepository;
@@ -36,7 +37,7 @@ class AuthService {
 
         const role = user.role.name;
 
-        if (role !== 'ADMIN' && role !== 'MANAGER') {
+        if (role !== ROLE.ADMIN  && role !== ROLE.MANAGER ) {
             throw new UnauthorizedError(
                 'This account is not permitted to access the admin panel.'
             );

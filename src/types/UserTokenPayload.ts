@@ -1,7 +1,8 @@
 
 import type { JwtPayload } from 'jsonwebtoken';
+import { ROLE } from '../constants/role.constant.js';
 
-export type AdminRole = 'ADMIN' | 'MANAGER';
+export type AdminRole = (typeof ROLE)[keyof typeof ROLE];
 
 export type AccessTokenPayload = JwtPayload & {
     sub: string;

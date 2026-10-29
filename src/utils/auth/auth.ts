@@ -14,6 +14,7 @@ import type {
     AccessTokenPayload,
     PasswordResetTokenPayload,
 } from '../../types/UserTokenPayload.js';
+import { ROLE } from '../../constants/role.constant.js';
 
 // Validate the JWT secret before using it.
 function getJwtSecret(): string {
@@ -97,7 +98,7 @@ function verifyToken(
 export function verifyAccessToken(token: string): AccessTokenPayload {
     const payload = verifyToken(token, 'access');
 
-    if (payload.role !== 'ADMIN' && payload.role !== 'MANAGER') {
+    if (payload.role !==  ROLE.ADMIN  && payload.role !== ROLE.MANAGER ) {
         throw new jwt.JsonWebTokenError('Invalid token or token purpose.');
     }
 

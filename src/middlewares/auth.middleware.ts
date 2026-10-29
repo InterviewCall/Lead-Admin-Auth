@@ -40,11 +40,6 @@ const token = bearerToken || cookieToken;
 
         const role = user.role.name;
 
-        // Only ADMIN and MANAGER accounts are allowed to access this service.
-        if (role !== 'ADMIN' && role !== 'MANAGER') {
-            throw new UnauthorizedError('This account is not permitted.');
-        }
-
         if (tokenType === 'access') {
             if (!user.isActive || user.passwordResetRequired || payload.role !== role) {
                 throw new UnauthorizedError('This account cannot access the requested resource.');
@@ -73,7 +68,7 @@ const token = bearerToken || cookieToken;
 // Allow normal access only if the account is active,
 // no password reset is pending, and the role in the token
 // matches the user's current role in the database.
-export const requireAccessToken = (req: Request, _res: Response, next: NextFunction): void => {
+export const authenticateUser = (req: Request, _res: Response, next: NextFunction): void => {
     void authenticateToken(req, next, 'access');
 };
 
@@ -84,16 +79,4 @@ export const requireAccessToken = (req: Request, _res: Response, next: NextFunct
 // or an admin has deactivated an already activated account.
 export const requirePasswordResetToken = (req: Request, _res: Response, next: NextFunction): void => {
     void authenticateToken(req, next, 'password_reset');
-};
-
-// Allow only users with the ADMIN role to perform admin-only operations.
-export const requireAdminRole = (req: Request, _res: Response, next: NextFunction): void => {
-    const auth = (req as AuthRequest).auth;
-
-    if (!auth || auth.tokenType !== 'access' || auth.role !== 'ADMIN') {
-        next(new UnauthorizedError('Admin access is required.'));
-        return;
-    }
-
-    next();
 };
